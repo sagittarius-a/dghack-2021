@@ -1,0 +1,31 @@
+[package]
+name = "chall_ake"
+version = "0.1.0"
+edition = "2018"
+
+# [[bin]]
+# name = "noise_clien-server"
+# path = "src/noise.rs"
+
+[[bin]]
+name = "ake_server"
+path = "src/ake_server.rs"
+
+[[bin]]
+name = "ake_client"
+path = "src/ake_client.rs"
+
+# [[bin]]
+# name = "ake_attack"
+# path = "exploit/ake_attack.rs"
+
+[dependencies]
+# noise-protocol = "0.1.3"
+# noise-rust-crypto = "0.4.1"
+# noise-sodiumoxide = "0.1.1"
+chacha20poly1305 = "0.8.0"
+blake2 = "0.9.1"
+x25519-dalek = "1.1.1"
+rand_core = "0.5"
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
