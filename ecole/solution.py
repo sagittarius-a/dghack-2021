@@ -1,6 +1,7 @@
 import argparse
 import json
 import random
+from datetime import datetime
 
 
 def parse_school_arguments():
@@ -87,6 +88,8 @@ def verify_score(score):
 if __name__ == "__main__":
     classes, students_data = parse_school_arguments()
 
+    start_time = datetime.now()
+
     # Create a corpus of N entries to mutate
     # corpus entry contains the classes and the associated score
     N = 1
@@ -99,7 +102,10 @@ if __name__ == "__main__":
         ]
         corpus.append((n, 0))
 
+    tries = 0
+    last_sec = 0
     while "Mutate all the things !":
+        tries += 1
 
         for i, candidate in enumerate(corpus):
 
@@ -110,7 +116,7 @@ if __name__ == "__main__":
                 candidate[0][2].copy(),
             ]
 
-            K = random.randint(2, 64)
+            K = random.randint(2, 128)
 
             # Swap 2 students K times
             for _ in range(K):
@@ -141,3 +147,11 @@ if __name__ == "__main__":
                 print(f"[{i}] New score: {score}")
                 # Saving the mutated entry in the corpus
                 corpus[i] = (newc.copy(), score)
+
+        elapsed = (datetime.now() - start_time).seconds
+        if elapsed != last_sec:
+            last_sec = elapsed
+            if elapsed:
+                print(f"{tries/elapsed:.2f} tries/sec")
+                with open("python-stat.txt", "a+") as fd:
+                    fd.write(f"{elapsed} {tries/elapsed:.2f}\n")
