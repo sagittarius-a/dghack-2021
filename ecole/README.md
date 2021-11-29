@@ -20,5 +20,5 @@ Had luck on my side.
 
 # Note
 
-In the Rust version, the geenrated file `solution.json` needs to be updated
+In the Rust version, the generated file `solution.json` needs to be updated
 to be compliant with the expected format.
